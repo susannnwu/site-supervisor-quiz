@@ -49,7 +49,7 @@
   <script src="quiz-data.js"></script>
   <script>
     const DATA=window.QUIZ_DATA||[], $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-    const PDF_PREFIX=location.protocol==='file:'?'../':'./';
+    const PDF_PREFIX=location.protocol==='file:'?'../data_set/':'./data_set/';
     const WRONG_KEY='site-supervisor-wrong-v1', COMPLETED_KEY='site-supervisor-completed-v1'; let current=null;
     const getWrong=()=>JSON.parse(localStorage.getItem(WRONG_KEY)||'[]');
     const saveWrong=x=>localStorage.setItem(WRONG_KEY,JSON.stringify(x));
