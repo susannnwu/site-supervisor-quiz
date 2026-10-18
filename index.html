@@ -49,6 +49,7 @@
   <script src="quiz-data.js"></script>
   <script>
     const DATA=window.QUIZ_DATA||[], $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+    const PDF_PREFIX=location.protocol==='file:'?'../':'./';
     const WRONG_KEY='site-supervisor-wrong-v1', COMPLETED_KEY='site-supervisor-completed-v1'; let current=null;
     const getWrong=()=>JSON.parse(localStorage.getItem(WRONG_KEY)||'[]');
     const saveWrong=x=>localStorage.setItem(WRONG_KEY,JSON.stringify(x));
@@ -66,7 +67,7 @@
       fill($('#session'),[], '請先選擇年份'); fill($('#sheet'),[], '請先選擇次數');
     }
     function renderQuiz(){
-      const qs=current.questions; $('#quiz').hidden=false; $('#quiz').innerHTML=`<div class="quiz-top"><div><h2>${escapeHtml(current.session)}・${escapeHtml(label(current.sheet))}</h2><p>共 ${qs.length} 題｜<a class="source" href="../${encodeURI(current.pdf)}" target="_blank">開啟原始 PDF</a></p></div><div class="quiz-actions"><button class="secondary" id="backTop">回到選券</button><button class="primary" id="submit">交卷並檢討</button></div></div><div id="cards"></div>`;
+      const qs=current.questions; $('#quiz').hidden=false; $('#quiz').innerHTML=`<div class="quiz-top"><div><h2>${escapeHtml(current.session)}・${escapeHtml(label(current.sheet))}</h2><p>共 ${qs.length} 題｜<a class="source" href="${PDF_PREFIX}${encodeURI(current.pdf)}" target="_blank">開啟原始 PDF</a></p></div><div class="quiz-actions"><button class="secondary" id="backTop">回到選券</button><button class="primary" id="submit">交卷並檢討</button></div></div><div id="cards"></div>`;
       $('#cards').innerHTML=qs.map((q,i)=>{const opts=['A','B','C','D'].map(k=>{const val=q.options[k]||'（本題排版未完整擷取，請參考原始 PDF）';return `<label class="option ${q.options[k]?'':'missing'}"><input type="radio" name="q${i}" value="${k}"><span><b>${k}.</b> ${escapeHtml(val)}</span></label>`}).join('');return `<article class="card question"><div class="q-head"><span class="q-no">第 ${q.number} 題</span><div class="q-text">${escapeHtml(q.question||'請參考原始 PDF 題目')}</div></div><div class="options">${opts}</div></article>`}).join('');
       $('#submit').onclick=submitQuiz; $('#backTop').onclick=()=>{ $('#quiz').hidden=true; window.scrollTo({top:0,behavior:'smooth'}); };
       window.scrollTo({top:0,behavior:'smooth'});
@@ -94,7 +95,7 @@
       $('#submit').disabled=true; $('#submit').textContent='已完成'; markAnswerOptions();
       const review=document.createElement('div'); review.className='card review'; review.innerHTML='<h3 style="padding:16px 20px;margin:0">本次檢討（完整作答與正確答案）</h3>'+attempts.map(({q,chosen,correct,isBonus,isCorrect})=>{const status=isBonus?'送分':isCorrect?'答對':chosen?'答錯':'未作答'; const cls=isCorrect?'right':'wrong'; return `<div class="review-item"><div><span class="${cls}">第 ${q.number} 題｜${status}</span></div><p><b>題目：</b>${escapeHtml(q.question)}</p><p><b>我的作答：</b>${escapeHtml(optionLabel(q,chosen))}<br><b>正確答案：</b>${escapeHtml(optionLabel(q,correct))}</p></div>`}).join(''); $('#quiz').append(review); result.scrollIntoView({behavior:'smooth'});
     }
-    function renderWrong(){const list=getWrong();$('#wrongList').innerHTML=list.length?list.slice().reverse().map(w=>`<article class="wrong-card"><h3>${escapeHtml(w.session)}・${escapeHtml(label(w.sheet))}<span class="badge">第 ${w.number} 題</span></h3><p>${escapeHtml(w.question)}</p><p class="meta">你的答案：<b class="wrong">${w.selected}</b>　正確答案：<b class="right">${w.correct}</b>　<a class="source" href="../${encodeURI(w.pdf)}" target="_blank">查看原始 PDF</a></p></article>`).join(''):'<div class="empty">目前還沒有錯題紀錄。完成一張試券後，答錯題目會自動出現在這裡。</div>';}
+    function renderWrong(){const list=getWrong();$('#wrongList').innerHTML=list.length?list.slice().reverse().map(w=>`<article class="wrong-card"><h3>${escapeHtml(w.session)}・${escapeHtml(label(w.sheet))}<span class="badge">第 ${w.number} 題</span></h3><p>${escapeHtml(w.question)}</p><p class="meta">你的答案：<b class="wrong">${w.selected}</b>　正確答案：<b class="right">${w.correct}</b>　<a class="source" href="${PDF_PREFIX}${encodeURI(w.pdf)}" target="_blank">查看原始 PDF</a></p></article>`).join(''):'<div class="empty">目前還沒有錯題紀錄。完成一張試券後，答錯題目會自動出現在這裡。</div>';}
     $$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.view').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.view).classList.add('active');if(b.dataset.view==='wrong')renderWrong();});
     $('#start').onclick=()=>{current=DATA.find(x=>x.id===$('#sheet').value);if(current)renderQuiz();}; $('#clearWrong').onclick=()=>{if(confirm('確定要清除所有錯題紀錄嗎？')){localStorage.removeItem(WRONG_KEY);refreshStats();renderWrong();}};
     document.addEventListener('DOMContentLoaded',()=>{updateFilters();refreshStats();});
